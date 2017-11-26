@@ -1,0 +1,2 @@
+Agent-Class: no.maddin.inspect.Agent
+

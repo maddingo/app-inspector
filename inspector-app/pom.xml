@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>inspector</artifactId>
+        <groupId>no.maddin.inspector</groupId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>inspector-app</artifactId>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>java</groupId>
+            <artifactId>tools</artifactId>
+            <systemPath>${java.home}/../lib/tools.jar</systemPath>
+            <version>1.8</version>
+            <scope>system</scope>
+        </dependency>
+        <dependency>
+            <groupId>java</groupId>
+            <artifactId>sa-jdi</artifactId>
+            <systemPath>${java.home}/../lib/sa-jdi.jar</systemPath>
+            <version>1.8</version>
+            <scope>system</scope>
+        </dependency>
+    </dependencies>
+</project>
