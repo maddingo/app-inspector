@@ -1,14 +1,10 @@
 package no.maddin.inspect;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Field;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.List;
 
 /**
  * https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/package-summary.html#package_description
@@ -46,7 +42,15 @@ public class Agent {
     }
 
     private static void onVisit(PrintStream os, Object owner, Field field, Object fieldValue) {
-        Class<?> ownerClass = owner instanceof Class ? (Class<?>) owner : owner.getClass();
-        os.printf("%08X(%s) --%s--> %08X(%s)\n", owner.hashCode(), ownerClass.getName(), field.getName(), fieldValue.hashCode(), fieldValue.getClass().getName());
+        long ownerHash;
+        String ownerClassName;
+        if (owner != null) {
+            ownerClassName = (owner instanceof Class ? (Class<?>) owner : owner.getClass()).getName();
+            ownerHash = owner.hashCode();
+        } else {
+            ownerClassName = "";
+            ownerHash = 0;
+        }
+        os.printf("%08X|%s|%s|%08X|%s\n", ownerHash, ownerClassName, field.getName(), fieldValue.hashCode(), fieldValue.getClass().getName());
     }
 }
