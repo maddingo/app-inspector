@@ -18,7 +18,7 @@ public class Agent {
         int port = Integer.parseInt(args[0]);
         try (
             Socket s = new Socket("localhost", port);
-            PrintStream os = new PrintStream(s.getOutputStream());
+            PrintStream os = new PrintStream(s.getOutputStream())
         ) {
             InstanceInspector inspector = new InstanceInspector(loadedClasses, (owner, field, value) ->
                 onVisit(os, owner, field, value),
