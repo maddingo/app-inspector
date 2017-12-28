@@ -1,5 +1,6 @@
 package no.maddin.inspector;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -14,6 +15,9 @@ import org.springframework.context.event.EventListener;
 public class InspectorApp implements ApplicationRunner {
 
     private String pid;
+
+    @Autowired
+    private InstanceRepository instanceRepository;
 
     public static void main(String[] args) {
         ApplicationContext ctx = SpringApplication.run(InspectorApp.class, args);
@@ -31,7 +35,7 @@ public class InspectorApp implements ApplicationRunner {
     @EventListener(ApplicationReadyEvent.class)
     private void onAppReady(ApplicationReadyEvent evt) throws ReflectiveOperationException {
         if (pid != null) {
-            new Inspector(pid).run();
+            new Inspector(pid, instanceRepository).run();
         }
     }
 }
