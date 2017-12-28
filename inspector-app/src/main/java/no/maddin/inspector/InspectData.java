@@ -10,7 +10,7 @@ public class InspectData {
     String ownerClassName;
     String fieldName;
     String targetClassName;
-    String fieldValue;
+    long instanceHash;
     String fieldClassName;
 
     public static InspectData fromAgentString(String line) {
@@ -20,7 +20,7 @@ public class InspectData {
             .ownerHash(Long.parseLong(elems[0], 16))
             .ownerClassName(elems[1])
             .fieldName(elems[2])
-            .fieldValue(elems[3])
+            .instanceHash(Long.parseLong(elems[3], 16))
             .fieldClassName(elems[4])
             .build();
 

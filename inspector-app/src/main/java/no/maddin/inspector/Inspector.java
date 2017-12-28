@@ -7,16 +7,7 @@ import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,6 +33,9 @@ public class Inspector implements Runnable {
 
     private final String pid;
 
+    @Autowired
+    private InstanceRepository instanceRepository;
+
     @Override
     public void run() {
         attachAgent();
@@ -57,7 +51,7 @@ public class Inspector implements Runnable {
             int serverPort = listener.getLocalPort();
             VirtualMachine vm = VirtualMachine.attach(pid);
             try {
-                service.submit(() -> readFromSocket(listener));
+                service.submit(() -> readFromSocket(listener, this::persist));
                 String includes = "(no\\.maddin\\..+|org\\.springframework\\..+)";
                 String argString = String.format("%d %s", serverPort, includes);
                 vm.loadAgent(agentLib.getPath(), argString);
@@ -71,7 +65,7 @@ public class Inspector implements Runnable {
         }
     }
 
-    private static void readFromSocket(ServerSocket listener) {
+    private static void readFromSocket(ServerSocket listener, InspectDataPersister persister) {
         try (
             Socket socket = listener.accept();
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))
@@ -79,6 +73,7 @@ public class Inspector implements Runnable {
             String line;
             while ((line = reader.readLine()) != null) {
                 InspectData data = InspectData.fromAgentString(line);
+                persister.persist(data);
                 log.info(data.toString());//System.out.println(data);
                 if ("EXIT".equals(line)) {
                     break;
@@ -86,6 +81,24 @@ public class Inspector implements Runnable {
             }
         } catch (IOException e) {
             log.error("reading from socket", e);
+        }
+    }
+
+    // TODO need to model the relationship (field name)
+    private void persist(InspectData data) {
+        if (data.getInstanceHash() != 0L) {
+            // count only non-null instance
+            Instance instance = new Instance();
+            instance.setHashValue(data.getInstanceHash());
+            instance.setType(data.getFieldClassName());
+            Instance owner = instanceRepository.findOne(data.getOwnerHash());
+            if (owner == null) {
+                owner = new Instance();
+                owner.setHashValue(data.getOwnerHash());
+                owner.setType(data.getOwnerClassName());
+            }
+            instance.setOwnedBy(java.util.Collections.singleton(owner));
+            instanceRepository.save(instance);
         }
     }
 
