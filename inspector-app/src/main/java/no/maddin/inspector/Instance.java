@@ -1,20 +1,26 @@
 package no.maddin.inspector;
 
-import lombok.Data;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Relationship;
-import org.springframework.data.annotation.Id;
+import lombok.*;
+import org.neo4j.ogm.annotation.*;
 
+import java.util.HashSet;
+
+/**
+ * OwnedBys has to be excluded from equals and hashCode to avoid stack overflow due to endless recursion.
+ */
 @NodeEntity
 @Data
+@ToString(exclude = {"ownedBys"})
+@EqualsAndHashCode(exclude = {"ownedBys"})
 public class Instance {
-    @Id
+    @GraphId @Index(primary = true, unique = true)
     private Long id;
 
+    @Index(unique=true)
     private Long hashValue;
 
     private String type;
 
-    @Relationship(type="OWNED_BY")
-    private java.util.Set<Instance> ownedBy;
+    private java.util.Set<OwnedBy> ownedBys = new HashSet<>();
 }
+

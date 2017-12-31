@@ -7,8 +7,8 @@ import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.neo4j.ogm.session.Session;
+import org.springframework.data.neo4j.template.Neo4jTemplate;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,7 +34,11 @@ public class Inspector implements Runnable {
 
     private final String pid;
 
+    private Session neo4jSession;
+
     private final InstanceRepository instanceRepository;
+
+    private final NodeIdGenerator nodeIdGenerator;
 
     @Override
     public void run() {
@@ -74,7 +78,6 @@ public class Inspector implements Runnable {
             while ((line = reader.readLine()) != null) {
                 InspectData data = InspectData.fromAgentString(line);
                 persister.persist(data);
-                log.info(data.toString());//System.out.println(data);
                 if ("EXIT".equals(line)) {
                     break;
                 }
@@ -85,25 +88,32 @@ public class Inspector implements Runnable {
     }
 
     // TODO need to model the relationship (field name)
-    private void persist(InspectData data) {
+    private void persist(InspectData data) throws IOException {
         if (data.getInstanceHash() != 0L) {
+            log.info("persisting: %s", data);
             try {
                 // count only non-null instance
-                Instance instance = new Instance();
-                instance.setHashValue(data.getInstanceHash());
-                instance.setType(data.getFieldClassName());
-                Instance owner = instanceRepository.findByHashValue(data.getOwnerHash());
-                if (owner == null) {
-                    owner = new Instance();
-                    owner.setHashValue(data.getOwnerHash());
-                    owner.setType(data.getOwnerClassName());
-                }
-                instance.setOwnedBy(java.util.Collections.singleton(owner));
-                instanceRepository.save(instance);
+                Instance instance = findOrCreateInstance(data.getInstanceHash(), data.getFieldClassName());
+                Instance owner =  findOrCreateInstance(data.getOwnerHash(), data.getOwnerClassName());
+                OwnedBy owned = new OwnedBy(nodeIdGenerator.nodeId(), instance, owner, data.getFieldName());
+                instance.getOwnedBys().add(owned);
+                instanceRepository.save(instance, 1);
             } catch(Exception ex) {
-                log.error("Saving: " + data, ex);
+                throw new IOException(ex);
+//                log.error("Saving: " + data, ex);
             }
         }
+    }
+
+    private Instance findOrCreateInstance(long hashValue, String type) {
+        Instance i = instanceRepository.findByHashValue(hashValue);
+        if (i == null) {
+            i = new Instance();
+            i.setId(nodeIdGenerator.nodeId());
+            i.setHashValue(hashValue);
+            i.setType(type);
+        }
+        return i;
     }
 
     private static class AgentLib implements AutoCloseable {

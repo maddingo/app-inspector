@@ -19,6 +19,9 @@ public class InspectorApp implements ApplicationRunner {
     @Autowired
     private InstanceRepository instanceRepository;
 
+    @Autowired
+    private NodeIdGenerator idGenerator;
+
     public static void main(String[] args) {
         ApplicationContext ctx = SpringApplication.run(InspectorApp.class, args);
     }
@@ -35,7 +38,7 @@ public class InspectorApp implements ApplicationRunner {
     @EventListener(ApplicationReadyEvent.class)
     private void onAppReady(ApplicationReadyEvent evt) throws ReflectiveOperationException {
         if (pid != null) {
-            new Inspector(pid, instanceRepository).run();
+            new Inspector(pid, instanceRepository, idGenerator).run();
         }
     }
 }
