@@ -8,7 +8,7 @@ import com.sun.tools.attach.VirtualMachine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.ogm.session.Session;
-import org.springframework.data.neo4j.template.Neo4jTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,7 +34,7 @@ public class Inspector implements Runnable {
 
     private final String pid;
 
-    private Session neo4jSession;
+//    private Session neo4jSession;
 
     private final InstanceRepository instanceRepository;
 
@@ -90,14 +90,20 @@ public class Inspector implements Runnable {
     // TODO need to model the relationship (field name)
     private void persist(InspectData data) throws IOException {
         if (data.getInstanceHash() != 0L) {
-            log.info("persisting: %s", data);
+            log.info("persisting: {}", data);
             try {
                 // count only non-null instance
-                Instance instance = findOrCreateInstance(data.getInstanceHash(), data.getFieldClassName());
                 Instance owner =  findOrCreateInstance(data.getOwnerHash(), data.getOwnerClassName());
-                OwnedBy owned = new OwnedBy(nodeIdGenerator.nodeId(), instance, owner, data.getFieldName());
-                instance.getOwnedBys().add(owned);
-                instanceRepository.save(instance, 1);
+                owner = instanceRepository.save(owner);
+                Instance instance = findOrCreateInstance(data.getInstanceHash(), data.getFieldClassName());
+                OwnedBy owned = new OwnedBy();
+                owned.setInstance(instance);
+                owned.setOwner(owner);
+                owned.setFieldName(data.getFieldName());
+//                instance.getOwnedBys().add(owned);
+                instance.setOwnedBy(owned);
+                instanceRepository.save(instance);
+                log.info("Nodes: {}", instanceRepository.count());
             } catch(Exception ex) {
                 throw new IOException(ex);
 //                log.error("Saving: " + data, ex);
@@ -109,7 +115,6 @@ public class Inspector implements Runnable {
         Instance i = instanceRepository.findByHashValue(hashValue);
         if (i == null) {
             i = new Instance();
-            i.setId(nodeIdGenerator.nodeId());
             i.setHashValue(hashValue);
             i.setType(type);
         }

@@ -10,8 +10,8 @@ import org.springframework.context.annotation.Configuration;
 @EnableAutoConfiguration
 public class AppConfiguration {
 
-    @Bean
-    public NodeIdGenerator nodeIdGenerator() {
-        return new Neo4jNodeIdGenerator();
-    }
+//    @Bean
+//    public NodeIdGenerator nodeIdGenerator() {
+//        return new Neo4jNodeIdGenerator();
+//    }
 }

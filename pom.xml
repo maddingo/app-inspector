@@ -9,6 +9,7 @@
         <module>testapp</module>
         <module>openjdkagent</module>
         <module>inspector-app</module>
+        <module>testapp-simple</module>
     </modules>
     <packaging>pom</packaging>
 

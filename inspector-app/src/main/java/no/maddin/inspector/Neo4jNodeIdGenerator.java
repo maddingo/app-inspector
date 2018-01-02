@@ -6,15 +6,21 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class Neo4jNodeIdGenerator implements NodeIdGenerator {
-    private final AtomicLong id = new AtomicLong(0);
+    private final AtomicLong nodeId = new AtomicLong(0);
+    private final AtomicLong relationshipId = new AtomicLong(0);
 
     @Override
     public long nodeId() {
-        return id.incrementAndGet();
+        return nodeId.incrementAndGet();
+    }
+
+    @Override
+    public long relationshipId() {
+        return relationshipId.incrementAndGet();
     }
 
     @Override
     public void setNodeId(long start)  {
-        id.set(start);
+        nodeId.set(start);
     }
 }
