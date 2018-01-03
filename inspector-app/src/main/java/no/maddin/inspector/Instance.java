@@ -11,11 +11,10 @@ import java.util.HashSet;
  * See https://stackoverflow.com/a/36281630/555366 on saving IDs.
  */
 @NodeEntity
-@Data
-@ToString(exclude = {"ownedBy"})
-@EqualsAndHashCode(exclude = {"ownedBy"})
+@ToString(exclude = {"ownedBys"})
+@EqualsAndHashCode(exclude = {"ownedBys"})
 public class Instance {
-//    @GraphId @Index(primary = true, unique = true)
+
     @Getter
     private Long id;
 
@@ -29,7 +28,8 @@ public class Instance {
     private String type;
 
     @Relationship(type = "OWNED_BY")
-//    private java.util.Set<OwnedBy> ownedBys = new HashSet<>();
-    private OwnedBy ownedBy;
+    @Getter
+    private java.util.Set<OwnedBy> ownedBys = new HashSet<>();
+//    private OwnedBy ownedBy;
 }
 

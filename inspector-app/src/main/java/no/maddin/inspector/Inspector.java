@@ -100,8 +100,8 @@ public class Inspector implements Runnable {
                 owned.setInstance(instance);
                 owned.setOwner(owner);
                 owned.setFieldName(data.getFieldName());
-//                instance.getOwnedBys().add(owned);
-                instance.setOwnedBy(owned);
+                instance.getOwnedBys().add(owned);
+//                instance.setOwnedBy(owned);
                 instanceRepository.save(instance);
                 log.info("Nodes: {}", instanceRepository.count());
             } catch(Exception ex) {

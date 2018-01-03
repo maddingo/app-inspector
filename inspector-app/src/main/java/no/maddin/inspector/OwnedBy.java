@@ -11,7 +11,6 @@ import org.neo4j.ogm.annotation.*;
 @EqualsAndHashCode
 public class OwnedBy {
 
-//    @GraphId //@Index(primary = true, unique = true)
     @Getter
     private Long id;
 
